@@ -1,0 +1,85 @@
+0:53:07 AM: Netlify Build                                                 
+10:53:07 AM: ────────────────────────────────────────────────────────────────
+10:53:07 AM: ​
+10:53:07 AM: ❯ Version
+10:53:07 AM:   @netlify/build 33.0.0
+10:53:07 AM: ​
+10:53:07 AM: ❯ Flags
+10:53:07 AM:   accountId: 67597613207bb3635b6eb5de
+10:53:07 AM:   baseRelDir: true
+10:53:07 AM:   buildId: 682aff6c09a0dec0587b9a49
+10:53:07 AM:   deployId: 682aff6c09a0dec0587b9a4b
+10:53:08 AM: ​
+10:53:08 AM: ❯ Current directory
+10:53:08 AM:   /opt/build/repo
+10:53:08 AM: ​
+10:53:08 AM: ❯ Config file
+10:53:08 AM:   /opt/build/repo/netlify.toml
+10:53:08 AM: ​
+10:53:08 AM: ❯ Context
+10:53:08 AM:   production
+10:53:08 AM: ​
+10:53:08 AM: build.command from netlify.toml                               
+10:53:08 AM: ────────────────────────────────────────────────────────────────
+10:53:08 AM: ​
+10:53:08 AM: $ npm run build
+10:53:08 AM: > rest-express@1.0.0 build
+10:53:08 AM: > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+10:53:08 AM: vite v5.4.14 building for production...
+10:53:08 AM: transforming...
+10:53:09 AM: Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+10:53:09 AM:   npx update-browserslist-db@latest
+10:53:09 AM:   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+10:53:14 AM: ✓ 3298 modules transformed.
+10:53:15 AM: rendering chunks...
+10:53:15 AM: computing gzip size...
+10:53:15 AM: ../dist/public/index.html                     0.63 kB │ gzip:   0.38 kB
+10:53:15 AM: ../dist/public/assets/index-SrVeUS4H.css     88.12 kB │ gzip:  14.41 kB
+10:53:15 AM: ../dist/public/assets/index-Y1lBK9Cw.js   1,106.74 kB │ gzip: 325.39 kB
+10:53:15 AM: 
+10:53:15 AM: (!) Some chunks are larger than 500 kB after minification. Consider:
+10:53:15 AM: - Using dynamic import() to code-split the application
+10:53:15 AM: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+10:53:15 AM: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+10:53:15 AM: ✓ built in 6.50s
+10:53:15 AM:   dist/index.js  38.0kb
+10:53:15 AM: ⚡ Done in 9ms
+10:53:15 AM: ​
+10:53:15 AM: (build.command completed in 7.3s)
+10:53:15 AM: ​
+10:53:15 AM: Functions bundling                                            
+10:53:15 AM: ────────────────────────────────────────────────────────────────
+10:53:15 AM: ​
+10:53:15 AM: Packaging Functions from netlify/functions directory:
+10:53:15 AM:  - api.js
+10:53:15 AM: ​
+10:53:15 AM: ​
+10:53:15 AM: Dependencies installation error                               
+10:53:15 AM: ────────────────────────────────────────────────────────────────
+10:53:15 AM: ​
+10:53:15 AM:   Error message
+10:53:15 AM:   A Netlify Function failed to require one of its dependencies.
+10:53:15 AM:   Please make sure it is present in the site's top-level "package.json".
+​
+10:53:15 AM:   In file "/opt/build/repo/netlify/functions/api.js"
+10:53:15 AM:   Cannot find module '../../server/routes' from '/opt/build/repo/netlify/functions'
+10:53:15 AM: ​
+10:53:15 AM:   Resolved config
+10:53:15 AM:   build:
+10:53:15 AM:     command: npm run build
+10:53:15 AM:     commandOrigin: config
+10:53:15 AM:     publish: /opt/build/repo/dist
+10:53:15 AM:     publishOrigin: config
+10:53:15 AM:   functionsDirectory: /opt/build/repo/netlify/functions
+10:53:15 AM:   redirects:
+10:53:16 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+10:53:16 AM:     - from: /api/*
+      status: 200
+      to: /.netlify/functions/api/:splat
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+10:53:16 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+10:53:16 AM: Failing build: Failed to build site
+10:53:16 AM: Finished processing build request in 29.612s
