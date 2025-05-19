@@ -153,7 +153,9 @@ export default function Dashboard() {
             </div>
           ) : activities && Array.isArray(activities) && activities.length > 0 ? (
             <div className="space-y-4">
-              {activities.map((activity: any, index: number) => {
+              {activities.map((activity: UserActivity | null, index: number) => {
+                if (!activity) return null;
+
                 // Determine icon and color based on activity type
                 let icon = <Coins />;
                 let bgColorClass = "bg-blue-500";

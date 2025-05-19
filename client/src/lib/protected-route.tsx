@@ -20,6 +20,9 @@ export function ProtectedRoute({
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
+        } else {
+          // Set error for non-200 responses
+          setError(new Error('Authentication failed'));
         }
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'));
@@ -41,8 +44,8 @@ export function ProtectedRoute({
     );
   }
 
-  if (error || !user) {
-    console.error('Auth error:', error);
+  // Only redirect if we're not loading and either have an error or no user
+  if (!loading && (!user || error)) {
     return (
       <Route path={path}>
         <Redirect to="/auth" />
