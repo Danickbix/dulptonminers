@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
-import { scrypt, randomBytes } from "crypto";
+import { randomBytes, pbkdf2 } from "crypto";
 import { nanoid } from "nanoid";
 import { ZodError, z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -18,7 +18,8 @@ declare global {
 async function hashPassword(password: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const salt = randomBytes(16).toString("hex");
-    scrypt(password, salt, 64, (err, derivedKey) => {
+    // Use pbkdf2 instead of scrypt for better compatibility
+    pbkdf2(password, salt, 100000, 64, 'sha512', (err, derivedKey) => {
       if (err) reject(err);
       resolve(`${derivedKey.toString("hex")}.${salt}`);
     });
@@ -28,7 +29,8 @@ async function hashPassword(password: string): Promise<string> {
 async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     const [hashed, salt] = stored.split(".");
-    scrypt(supplied, salt, 64, (err, derivedKey) => {
+    // Use pbkdf2 instead of scrypt for better compatibility
+    pbkdf2(supplied, salt, 100000, 64, 'sha512', (err, derivedKey) => {
       if (err) reject(err);
       resolve(derivedKey.toString("hex") === hashed);
     });
