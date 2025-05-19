@@ -22,7 +22,8 @@ export function ProtectedRoute({
           setUser(userData);
         } else {
           // Set error for non-200 responses
-          setError(new Error('Authentication failed'));
+          const errorText = await response.text();
+          setError(new Error(errorText || 'Authentication failed'));
         }
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'));

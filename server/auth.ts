@@ -17,23 +17,31 @@ declare global {
 
 async function hashPassword(password: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const salt = randomBytes(16).toString("hex");
-    // Use pbkdf2 instead of scrypt for better compatibility
-    pbkdf2(password, salt, 100000, 64, 'sha512', (err, derivedKey) => {
-      if (err) reject(err);
-      resolve(`${derivedKey.toString("hex")}.${salt}`);
-    });
+    try {
+      const salt = randomBytes(16).toString("hex");
+      // Use pbkdf2 instead of scrypt for better compatibility
+      pbkdf2(password, salt, 100000, 64, 'sha512', (err, derivedKey) => {
+        if (err) reject(err);
+        resolve(`${derivedKey.toString("hex")}.${salt}`);
+      });
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
 async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
-    const [hashed, salt] = stored.split(".");
-    // Use pbkdf2 instead of scrypt for better compatibility
-    pbkdf2(supplied, salt, 100000, 64, 'sha512', (err, derivedKey) => {
-      if (err) reject(err);
-      resolve(derivedKey.toString("hex") === hashed);
-    });
+    try {
+      const [hashed, salt] = stored.split(".");
+      // Use pbkdf2 instead of scrypt for better compatibility
+      pbkdf2(supplied, salt, 100000, 64, 'sha512', (err, derivedKey) => {
+        if (err) reject(err);
+        resolve(derivedKey.toString("hex") === hashed);
+      });
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
@@ -73,6 +81,9 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
+      if (!user) {
+        return done(new Error('User not found'));
+      }
       done(null, user);
     } catch (error) {
       done(error);
@@ -111,55 +122,63 @@ export function setupAuth(app: Express) {
       // Generate a unique referral code for the new user
       const generatedReferralCode = nanoid(8);
       
-      // Create user
-      const user = await storage.createUser({
-        username: userDataWithoutConfirm.username,
-        email: userDataWithoutConfirm.email,
-        password: await hashPassword(userDataWithoutConfirm.password),
-        referralCode: generatedReferralCode
-      });
-      
-      // Check if referral code was provided
-      if (userData.referralCode) {
-        const referrer = await storage.getUserByReferralCode(userData.referralCode);
+      try {
+        // Hash password
+        const hashedPassword = await hashPassword(userDataWithoutConfirm.password);
         
-        if (referrer) {
-          // Create referral record
-          await storage.createReferral({
-            referrerId: referrer.id,
-            referredId: user.id
-          });
+        // Create user
+        const user = await storage.createUser({
+          username: userDataWithoutConfirm.username,
+          email: userDataWithoutConfirm.email,
+          password: hashedPassword,
+          referralCode: generatedReferralCode
+        });
+        
+        // Check if referral code was provided
+        if (userData.referralCode) {
+          const referrer = await storage.getUserByReferralCode(userData.referralCode);
           
-          // Update user with referredBy
-          await storage.updateUser(user.id, {
-            referredBy: referrer.id
-          });
-          
-          // Add referral bonus to referrer
-          const referralBonus = 50;
-          await storage.updateUser(referrer.id, {
-            points: referrer.points + referralBonus,
-            referralPoints: referrer.referralPoints + referralBonus
-          });
-          
-          // Log activity for referrer
-          await storage.createUserActivity({
-            userId: referrer.id,
-            type: "referral",
-            amount: referralBonus,
-            description: `Referral Bonus: ${user.username} joined`
-          });
+          if (referrer) {
+            // Create referral record
+            await storage.createReferral({
+              referrerId: referrer.id,
+              referredId: user.id
+            });
+            
+            // Update user with referredBy
+            await storage.updateUser(user.id, {
+              referredBy: referrer.id
+            });
+            
+            // Add referral bonus to referrer
+            const referralBonus = 50;
+            await storage.updateUser(referrer.id, {
+              points: referrer.points + referralBonus,
+              referralPoints: referrer.referralPoints + referralBonus
+            });
+            
+            // Log activity for referrer
+            await storage.createUserActivity({
+              userId: referrer.id,
+              type: "referral",
+              amount: referralBonus,
+              description: `Referral Bonus: ${user.username} joined`
+            });
+          }
         }
-      }
 
-      // Log user in
-      req.login(user, (err) => {
-        if (err) return next(err);
-        
-        // Remove password from response
-        const { password, ...userWithoutPassword } = user;
-        res.status(201).json(userWithoutPassword);
-      });
+        // Log user in
+        req.login(user, (err) => {
+          if (err) return next(err);
+          
+          // Remove password from response
+          const { password, ...userWithoutPassword } = user;
+          res.status(201).json(userWithoutPassword);
+        });
+      } catch (error) {
+        console.error('Error during user creation:', error);
+        return res.status(500).json({ message: "Failed to create user account" });
+      }
     } catch (error) {
       if (error instanceof ZodError) {
         return res.status(400).json({ message: fromZodError(error).message });
@@ -191,7 +210,7 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     
     // Remove password from response
     const { password, ...userWithoutPassword } = req.user!;
